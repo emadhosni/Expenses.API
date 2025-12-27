@@ -21,7 +21,7 @@ namespace Expenses.API.Data.Services
                 Amount = transaction.Amount,
                 Type = transaction.Type,
                 Category = transaction.Category,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = transaction.CreatedAt,
                 UpdatedAt = DateTime.UtcNow
             };
 
