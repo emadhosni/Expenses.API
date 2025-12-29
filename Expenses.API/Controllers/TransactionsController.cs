@@ -3,6 +3,7 @@ using Expenses.API.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Expenses.API.Controllers
 {
@@ -15,7 +16,14 @@ namespace Expenses.API.Controllers
         [HttpGet("All")]
         public IActionResult GetAll()
         {
-            var allTransactions = transactionService.GetAll();
+            var nameIdentifierClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(nameIdentifierClaim))
+                return BadRequest("Could not find the user Id.");
+
+            if (!int.TryParse(nameIdentifierClaim, out int userId) || userId <= 0)
+                return BadRequest("Invalid user Id.");
+
+            var allTransactions = transactionService.GetAll(userId);
             return Ok(allTransactions);
         }
 
@@ -32,8 +40,15 @@ namespace Expenses.API.Controllers
         [HttpPost("Create")]
         public IActionResult CreateTransaction([FromBody]PostTransactionDto payload)
         {
-            var newTrasaction = transactionService.Add(payload);
-            return Ok(newTrasaction);
+            var nameIdentifierClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(nameIdentifierClaim))
+                return BadRequest("Could not find the user Id.");
+
+            if(!int.TryParse(nameIdentifierClaim, out int userId) || userId <= 0)
+                return BadRequest("Invalid user Id.");
+
+            var newTransaction = transactionService.Add(payload, userId);
+            return Ok(newTransaction);
         }
 
         [HttpPut("Update/{id}")]
